@@ -1,0 +1,7 @@
+/EA
+/Utilities
+settings.py
+decompile_all.py
+*.ts4script
+compile.py
+.idea/
