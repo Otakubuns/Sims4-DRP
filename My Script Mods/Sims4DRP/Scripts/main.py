@@ -2,12 +2,13 @@ import time
 from functools import wraps
 from os.path import expanduser
 from time import mktime
+
 import rpc
 import services
 import sims4.reload
 from game_services import GameServiceManager, service_manager
+from sims.funds import FamilyFunds
 from sims4.service_manager import Service
-from world import lot
 
 # DRP Variables
 client_id = '971558123531804742'
@@ -49,34 +50,10 @@ class MyCustomService(Service):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    # Setting Presence to current household, income & world
     def on_zone_load(self, *args, **kwargs):
-        Household = services.active_household().name
-        World = services.get_persistence_service().get_neighborhood_proto_buf_from_zone_id(
-            services.current_zone_id()).name
-        Lot = lot.Lot.get_lot_name(self=services.active_lot())
-
-        try:
-            # setup text for discord image
-            world_key = World.replace(' ', '_')
-            world_key = world_key.replace('.', '_')
-            world_key = world_key.replace('-', '_')
-            world_key = world_key.lower()
-
-            # On successful lot load
-            activity = {
-                "state": f"{Household} Household",
-                "details": f"{World}",
-                "timestamps": {
-                    "start": start_time
-                },
-                "assets": {
-                    "large_image": f"{world_key}",
-                    "large_text": f"{World}"
-                }
-            }
-            rpc_sims.set_activity(activity)
-        except:
-            pass
+        SetActivity(GetWorldName(), GetWorldKey(GetWorldName()), GetWorldName(),
+                    f"{GetHouseholdName()} | §{GetHouseholdFunds()}")
 
     def stop(self, *args, **kwargs):
         global _my_custom_service
@@ -99,15 +76,62 @@ def start_services(original, self, *args, **kwargs):
 @inject_to(services, 'on_enter_main_menu')
 def inject_zone_loading(original):
     original()
-    # Start RPC Initial Connection
-    activity = {
-        "details": "Browsing the menu",  # anything you like
-        "timestamps": {
-            "start": start_time
-        },
-        "assets": {
-            "large_image": "menu",  # must match the image key
-            "large_text": "Main Menu"
-        }
-    }
-    rpc_sims.set_activity(activity)
+    SetActivity("Main Menu", "menu", "Browsing the menu", "")
+
+
+@inject_to(FamilyFunds, 'send_money_update')
+def update_household_funds(original, self, *args, **kwargs):
+    original(self, *args, **kwargs)
+    SetActivity(GetWorldName(), GetWorldKey(GetWorldName()), GetWorldName(),
+                f"{GetHouseholdName()} | §{GetHouseholdFunds()}")
+
+
+# Discord RPC Functions
+def SetActivity(largeimagetext, largeimagekey, details, state=""):
+    try:
+        if state != "":
+            activity = {
+                "details": details,
+                "state": state,
+                "timestamps": {
+                    "start": start_time
+                },
+                "assets": {
+                    "large_image": largeimagekey,
+                    "large_text": largeimagetext
+                }
+            }
+        else:
+            activity = {
+                "details": details,
+                "timestamps": {
+                    "start": start_time
+                },
+                "assets": {
+                    "large_image": largeimagekey,
+                    "large_text": largeimagetext
+                }
+            }
+        rpc_sims.set_activity(activity)
+    except:
+        pass
+
+
+def GetHouseholdName():
+    return services.active_household().name
+
+
+def GetHouseholdFunds():
+    return f"{services.active_household().funds.money:,}"
+
+
+def GetWorldName():
+    return services.get_persistence_service().get_neighborhood_proto_buf_from_zone_id(services.current_zone_id()).name
+
+
+def GetWorldKey(world_name):
+    world_key = world_name.replace(' ', '_')
+    world_key = world_key.replace('.', '_')
+    world_key = world_key.replace('-', '_')
+    world_key = world_key.lower()
+    return world_key
