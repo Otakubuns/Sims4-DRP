@@ -78,7 +78,6 @@ class MyCustomService(Service):
         build_buy.unregister_build_buy_enter_callback(self.on_build_buy_enter)
         build_buy.unregister_build_buy_exit_callback(self.on_build_buy_exit)
         _my_custom_service = None
-        client.close()
 
     def on_build_buy_enter(self, *args, **kwargs):
         with open(path, 'a') as f:
