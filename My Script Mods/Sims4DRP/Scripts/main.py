@@ -3,18 +3,20 @@ from functools import wraps
 from os.path import expanduser
 from time import mktime
 
+import build_buy
 import rpc
 import services
 import sims4.reload
 from game_services import GameServiceManager, service_manager
 from sims.funds import FamilyFunds
+from sims4.resources import Types
 from sims4.service_manager import Service
 
 # DRP Variables
-client_id = '971558123531804742'
-rpc_sims = rpc.DiscordIpcClient.for_platform(client_id)
-start_time = mktime(time.localtime())
 
+client_id = '971558123531804742'
+client = rpc.DiscordIpcClient.for_platform(client_id)
+start_time = mktime(time.localtime())
 
 def inject(target_function, new_function):
     @wraps(target_function)
@@ -44,21 +46,61 @@ def get_my_custom_service():
 
 #### FOR DEBUG ####
 path = expanduser('~/Documents/Electronic Arts/The Sims 4/Mods/TESTING/DRP.txt')
-
+# Storage for variables for easier updating
+gamemode_image = None
+gamemode_text = None
 
 class MyCustomService(Service):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    # Setting Presence to current household, income & world
+    # Setting Presence to on zone load, build/buy, and on menu
     def on_zone_load(self, *args, **kwargs):
-        SetActivity(GetWorldName(), GetWorldKey(GetWorldName()), GetWorldName(),
-                    f"{GetHouseholdName()} | §{GetHouseholdFunds()}")
+        global gamemode_text
+        global gamemode_image
+        gamemode_text = "Live Mode"
+        gamemode_image = "live"
+        client.set_activity(
+            details=GetWorldName(),
+            state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
+            large_image= GetWorldKey(GetWorldName()),
+            large_text = GetWorldName(),
+            small_image = gamemode_image,
+            small_text = gamemode_text,
+            start=start_time)
+
+    def start(self, *args, **kwargs):
+        build_buy.register_build_buy_enter_callback(self.on_build_buy_enter)
+        build_buy.register_build_buy_exit_callback(self.on_build_buy_exit)
 
     def stop(self, *args, **kwargs):
         global _my_custom_service
+        build_buy.unregister_build_buy_enter_callback(self.on_build_buy_enter)
+        build_buy.unregister_build_buy_exit_callback(self.on_build_buy_exit)
         _my_custom_service = None
 
+    def on_build_buy_enter(self, *args, **kwargs):
+        with open(path, 'a') as f:
+            f.write('on_build_buy_enter')
+        global gamemode_text
+        global gamemode_image
+        gamemode_text = "Build/Buy Mode"
+        gamemode_image = "buildbuy"
+        client.set_activity(
+            details=GetWorldName(),
+            state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
+            large_image=GetWorldKey(GetWorldName()),
+            large_text=GetWorldName(),
+            small_image=gamemode_image,
+            small_text=gamemode_text,
+            start=start_time)
+
+
+    def on_build_buy_exit(self, *args, **kwargs):
+        global gamemode_text
+        global gamemode_image
+        gamemode_text = "Live Mode"
+        gamemode_image = "live"
 
 @inject_to(GameServiceManager, 'start_services')
 def start_services(original, self, *args, **kwargs):
@@ -72,51 +114,29 @@ def start_services(original, self, *args, **kwargs):
 
     original(self, *args, **kwargs)
 
-
 @inject_to(services, 'on_enter_main_menu')
-def inject_zone_loading(original):
+def inject_main_menu_load(original):
     original()
-    SetActivity("Main Menu", "menu", "Browsing the menu", "")
+    client.set_activity(details="Browsing the menu", large_text="Main Menu", large_image="menu", start=start_time)
 
 
 @inject_to(FamilyFunds, 'send_money_update')
 def update_household_funds(original, self, *args, **kwargs):
     original(self, *args, **kwargs)
-    SetActivity(GetWorldName(), GetWorldKey(GetWorldName()), GetWorldName(),
-                f"{GetHouseholdName()} | §{GetHouseholdFunds()}")
+    client.set_activity(details=GetWorldName(),
+            state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
+            large_image=GetWorldKey(GetWorldName()),
+            large_text=GetWorldName(),
+            small_image=gamemode_image,
+            small_text=gamemode_text,
+            start=start_time)
 
 
-# Discord RPC Functions
-def SetActivity(largeimagetext, largeimagekey, details, state=""):
-    try:
-        if state != "":
-            activity = {
-                "details": details,
-                "state": state,
-                "timestamps": {
-                    "start": start_time
-                },
-                "assets": {
-                    "large_image": largeimagekey,
-                    "large_text": largeimagetext
-                }
-            }
-        else:
-            activity = {
-                "details": details,
-                "timestamps": {
-                    "start": start_time
-                },
-                "assets": {
-                    "large_image": largeimagekey,
-                    "large_text": largeimagetext
-                }
-            }
-        rpc_sims.set_activity(activity)
-    except:
-        pass
+# CAS STUFF
+#@inject_to(SimIrqService, 'start')
 
 
+# Functionality Functions
 def GetHouseholdName():
     return services.active_household().name
 

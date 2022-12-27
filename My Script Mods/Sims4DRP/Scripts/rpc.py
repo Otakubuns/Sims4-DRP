@@ -27,6 +27,7 @@ class DiscordIpcError(Exception):
     pass
 
 
+
 class DiscordIpcClient(metaclass=ABCMeta):
 
     """Work with an open Discord instance via its JSON IPC for its rich presence API.
@@ -107,7 +108,7 @@ class DiscordIpcClient(metaclass=ABCMeta):
         self.send(data, op)
         return self.recv()
 
-    def send(self, data, op=OP_FRAME):
+    def send(self, data: dict, op=OP_FRAME):
         logger.debug("sending %s", data)
         data_str = json.dumps(data, separators=(',', ':'))
         data_bytes = data_str.encode('utf-8')
@@ -126,17 +127,43 @@ class DiscordIpcClient(metaclass=ABCMeta):
         logger.debug("received %s", data)
         return op, data
 
-    def set_activity(self, act):
-        # act
+    # Edited from pypresence for convenience(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/presence.py)
+    def set_activity(self, state=None, details=None,start=None,large_image=None,large_text=None,
+                    small_image=None,small_text=None):
         data = {
-            'cmd': 'SET_ACTIVITY',
-            'args': {'pid': os.getpid(),
-                     'activity': act},
-            'nonce': str(uuid.uuid4())
+            "cmd": 'SET_ACTIVITY',
+            "args": {
+                "pid": os.getpid(),
+                "activity": {
+                    "state": state,
+                    "details": details,
+                    "timestamps": {
+                        "start": start,
+                    },
+                    "assets": {
+                        "large_image": large_image,
+                        "large_text": large_text,
+                        "small_image": small_image,
+                        "small_text": small_text
+                    },
+                },
+            },
+            "nonce": str(uuid.uuid4())
         }
+        data = remove_none(data)
         self.send(data)
 
-
+# Taken from pypresence(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/utils.py)
+def remove_none(d: dict): # Made by https://github.com/LewdNeko ;^)
+    for item in d.copy():
+        if isinstance(d[item], dict):
+            if len(d[item]):
+                d[item] = remove_none(d[item])
+            else:
+                del d[item]
+        elif d[item] is None:
+            del d[item]
+    return d
 class WinDiscordIpcClient(DiscordIpcClient):
 
     _pipe_pattern = R'\\?\pipe\discord-ipc-{}'
