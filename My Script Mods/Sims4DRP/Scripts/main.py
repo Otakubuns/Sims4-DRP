@@ -95,12 +95,19 @@ class MyCustomService(Service):
             small_text=gamemode_text,
             start=start_time)
 
-
     def on_build_buy_exit(self, *args, **kwargs):
         global gamemode_text
         global gamemode_image
         gamemode_text = "Live Mode"
         gamemode_image = "live"
+        client.set_activity(
+            details=GetWorldName(),
+            state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
+            large_image=GetWorldKey(GetWorldName()),
+            large_text=GetWorldName(),
+            small_image=gamemode_image,
+            small_text=gamemode_text,
+            start=start_time)
 
 @inject_to(GameServiceManager, 'start_services')
 def start_services(original, self, *args, **kwargs):
