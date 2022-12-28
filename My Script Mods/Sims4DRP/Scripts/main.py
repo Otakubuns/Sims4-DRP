@@ -80,8 +80,6 @@ class MyCustomService(Service):
         _my_custom_service = None
 
     def on_build_buy_enter(self, *args, **kwargs):
-        with open(path, 'a') as f:
-            f.write('on_build_buy_enter')
         global gamemode_text
         global gamemode_image
         gamemode_text = "Build/Buy Mode"
@@ -108,6 +106,7 @@ class MyCustomService(Service):
             small_image=gamemode_image,
             small_text=gamemode_text,
             start=start_time)
+
 
 @inject_to(GameServiceManager, 'start_services')
 def start_services(original, self, *args, **kwargs):
