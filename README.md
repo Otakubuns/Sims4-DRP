@@ -11,6 +11,7 @@ The program ATM only does on main menu function and when loading it. Future feat
 - ~~Show when in Build/Buy(already have the function for it)~~ Also now added with small images for gamemode(build/buy & live)
 - ~~Show household money and update when it changes~~ Added now
 - Show when in CAS(have no clue on this yet)
+- Configuration file for choosing to show household name, funds etc.
 
 A warning:
 I am not very well versed in Sims 4 modding. There is not too much documentation so many of these things are trial/error and finding code snippers to work off.
