@@ -7,15 +7,17 @@ This program uses help from a few sources of the web:<br>
 - https://lot51.cc/ for Sims 4 injector for on_load, buildbuy functions
 - https://github.com/qwertyquerty/pypresence for a few edits of the code to make it runner better & easier
 
-The program ATM only does on main menu function and when loading it. Future features are:
-- ~~Show when in Build/Buy(already have the function for it)~~ Also now added with small images for gamemode(build/buy & live)
-- ~~Show household money and update when it changes~~ Added now
+The mod currently does:
+- Show when in Build/Buy (with small images for gamemode(build/buy & live))
+- Show household money and updates when it changes
+
+Future Plans for it are:
 - Show when in CAS(have no clue on this yet)
-- Configuration file for choosing to show household name, funds etc.
+- Configuration file for choosing to show household name, funds etc(already started just been lazy).
 
 A warning:
-I am not very well versed in Sims 4 modding. There is not too much documentation so many of these things are trial/error and finding code snippers to work off.
-No idea if this works on Mac, I assume it will as the rpc has support for Unix and Mac is Unix based it should. No promises though.
+I am not very well versed in Sims 4 modding. There is not too much documentation so many of these things are trial/error and finding code snippets to work off.
+No idea if this works on Mac, I assume it will as the rpc has support for Unix and Mac is Unix based so it should. No promises though.
 
 <br><b>Example of default layout: </b><br>
 ![image](https://user-images.githubusercontent.com/77337386/205202833-4c7063cb-64b8-4679-93a7-2aeac75948fb.png)
