@@ -8,6 +8,7 @@ This program uses help from a few sources of the web:<br>
 - https://github.com/qwertyquerty/pypresence for a few edits of the code to make it runner better & easier
 
 The mod currently does:
+- Show current world & Household Name
 - Show when in Build/Buy (with small images for gamemode(build/buy & live))
 - Show household money and updates when it changes
 
