@@ -1,24 +1,33 @@
-# Sims4-DRP
-Discord Rich Presence for The Sims 4
+# Sims 4 Discord Rich Presence
 
-This program uses help from a few sources of the web:<br>
-- https://github.com/niveshbirangal/discord-rpc for a simple Discord API wrapper that works with Sims limited libraries
-- https://modthesims.info/showthread.php?p=4751246 for help with hooking into functions and injecting the discord code
-- https://lot51.cc/ for Sims 4 injector for on_load, buildbuy functions
-- https://github.com/qwertyquerty/pypresence for a few edits of the code to make it runner better & easier
+This is a mod for The Sims 4 utilizing Discord Rich Presence.
 
-The mod currently does:
-- Show current world & Household Name
-- Show when in Build/Buy (with small images for gamemode(build/buy & live))
-- Show household money and updates when it changes
+It currently:
+  - Shows current world & Household Name
+  - Shows when in Build/Buy (with small images for gamemode(build/buy & live))
+  - Shows household money and updates when it changes
+ 
+![image](https://user-images.githubusercontent.com/77337386/205202833-4c7063cb-64b8-4679-93a7-2aeac75948fb.png)
 
-Future Plans for it are:
+## Getting Started
+### Installing
+
+Go to [releases](https://github.com/Otakubuns/Sims4-DRP/releases) and download the latest release.
+
+Unzip the file and drag the .ts4script into the Mods folder.
+
+After that just run up the game and you should be good!
+
+Mac has not been tested but should work fine.
+
+## Acknowledgments
+
+ - https://github.com/niveshbirangal/discord-rpc for a simple Discord API wrapper that works with Sims limited libraries
+ - https://modthesims.info/showthread.php?p=4751246 for help with hooking into functions and injecting the discord code
+ - https://lot51.cc/ for Sims 4 injector for on_load, buildbuy functions
+ - https://github.com/qwertyquerty/pypresence for a few edits of the code to make it runner better & easier
+
+
+## Future Plans for it are:
 - Show when in CAS(have no clue on this yet)
 - Configuration file for choosing to show household name, funds etc(already started just been lazy).
-
-A warning:
-I am not very well versed in Sims 4 modding. There is not too much documentation so many of these things are trial/error and finding code snippets to work off.
-No idea if this works on Mac, I assume it will as the rpc has support for Unix and Mac is Unix based so it should. No promises though.
-
-<br><b>Example of default layout: </b><br>
-![image](https://user-images.githubusercontent.com/77337386/205202833-4c7063cb-64b8-4679-93a7-2aeac75948fb.png)
