@@ -22,14 +22,15 @@ Mac has not been tested but should work fine.
 
 ## Acknowledgments
 
- - https://github.com/niveshbirangal/discord-rpc for a simple Discord API wrapper that works with Sims limited libraries
- - https://modthesims.info/showthread.php?p=4751246 for help with hooking into functions and injecting the discord code
- - https://lot51.cc/ for Sims 4 injector for on_load, buildbuy functions
- - https://github.com/qwertyquerty/pypresence for a few edits of the code to make it runner better & easier
+ - https://github.com/niveshbirangal/discord-rpc for a simple Discord API wrapper that works with Sims limited libraries.
+ - https://modthesims.info/showthread.php?p=4751246 for help with hooking into functions and injecting the discord code.
+ - https://lot51.cc/ for Sims 4 injector for on_load, buildbuy functions.
+ - https://github.com/qwertyquerty/pypresence for a few edits of the code to make it runner better & easier.
+ - https://sims4studio.com/thread/15145/started-python-scripting for the Python Script Workspace & learning how to get started with this.
 
 
 ## Future Plans for it are:
-- Show when in CAS(have no clue on this yet)
+- Show when in CAS(have no clue on this yet).
 - Configuration file for choosing to show household name, funds etc(already started just been lazy).
 
 ### Issues
