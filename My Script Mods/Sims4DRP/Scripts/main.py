@@ -181,10 +181,7 @@ def update_household_funds(original, self, *args, **kwargs):
                         start=start_time)
 
 
-# CAS STUFF
-# TODO: Find CAS function(for new game & in menu)
-
-# World for Live CAS but not in menu(create a household)
+# Live CAS but not in menu(create a household)
 @inject_to(commands, 'client_cheat')
 def inject_cas_load(original, s, context):
     # Make sure command is "exit2cas"
