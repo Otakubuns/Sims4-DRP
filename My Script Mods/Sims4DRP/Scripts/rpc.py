@@ -130,7 +130,8 @@ class DiscordIpcClient(metaclass=ABCMeta):
     # Edited from pypresence for convenience(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/presence.py)
     def set_activity(self, state=None, details=None,start=None,large_image=None,large_text=None,
                     small_image=None,small_text=None):
-        data = {
+        try:
+            data = {
             "cmd": 'SET_ACTIVITY',
             "args": {
                 "pid": os.getpid(),
@@ -149,9 +150,13 @@ class DiscordIpcClient(metaclass=ABCMeta):
                 },
             },
             "nonce": str(uuid.uuid4())
-        }
-        data = remove_none(data)
-        self.send(data)
+            }
+            data = remove_none(data)
+            self.send(data)
+        except Exception as e:
+            pass
+
+
 
 # Taken from pypresence(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/utils.py)
 def remove_none(d: dict): # Made by https://github.com/LewdNeko ;^)

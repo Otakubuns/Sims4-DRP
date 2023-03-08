@@ -9,13 +9,16 @@ import services
 import sims4.reload
 from game_services import GameServiceManager, service_manager
 from sims.funds import FamilyFunds
+from sims4 import commands
 from sims4.service_manager import Service
+from world import lot
 
 # DRP Variables
 
 client_id = '971558123531804742'
 client = rpc.DiscordIpcClient.for_platform(client_id)
 start_time = mktime(time.localtime())
+
 
 def inject(target_function, new_function):
     @wraps(target_function)
@@ -43,11 +46,14 @@ def get_my_custom_service():
     return service_manager.my_custom_service
 
 
-#### FOR DEBUG ####
+#### FOR DEBUG (Is removed in release)####
 path = expanduser('~/Documents/Electronic Arts/The Sims 4/Mods/TESTING/DRP.txt')
+
 # Storage for variables for easier updating
 gamemode_image = None
 gamemode_text = None
+current_zone_id = None
+
 
 class MyCustomService(Service):
     def __init__(self, *args, **kwargs):
@@ -57,15 +63,17 @@ class MyCustomService(Service):
     def on_zone_load(self, *args, **kwargs):
         global gamemode_text
         global gamemode_image
+        global current_zone_id
         gamemode_text = "Live Mode"
         gamemode_image = "live"
+        current_zone_id = services.current_zone_id()
         client.set_activity(
             details=GetWorldName(),
             state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
-            large_image= GetWorldKey(GetWorldName()),
-            large_text = GetWorldName(),
-            small_image = gamemode_image,
-            small_text = gamemode_text,
+            large_image=GetWorldKey(GetWorldName()),
+            large_text=GetLotName(),
+            small_image=gamemode_image,
+            small_text=gamemode_text,
             start=start_time)
 
     def start(self, *args, **kwargs):
@@ -87,7 +95,7 @@ class MyCustomService(Service):
             details=GetWorldName(),
             state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
             large_image=GetWorldKey(GetWorldName()),
-            large_text=GetWorldName(),
+            large_text=GetLotName(),
             small_image=gamemode_image,
             small_text=gamemode_text,
             start=start_time)
@@ -101,7 +109,7 @@ class MyCustomService(Service):
             details=GetWorldName(),
             state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
             large_image=GetWorldKey(GetWorldName()),
-            large_text=GetWorldName(),
+            large_text=GetLotName(),
             small_image=gamemode_image,
             small_text=gamemode_text,
             start=start_time)
@@ -119,26 +127,78 @@ def start_services(original, self, *args, **kwargs):
 
     original(self, *args, **kwargs)
 
+
 @inject_to(services, 'on_enter_main_menu')
 def inject_main_menu_load(original):
     original()
     client.set_activity(details="Browsing the menu", large_text="Main Menu", large_image="menu", start=start_time)
 
 
+@inject_to(build_buy, 'c_api_buildbuy_session_begin')
+def inject_build_buy_enter(original, zone_id, account_id):
+    original(zone_id, account_id)
+    global current_zone_id
+
+    # If the zone id is different it's in manage world build/buy so update the presence
+    if current_zone_id != zone_id:
+        try:
+            client.set_activity(details=GetWorldName(),
+                                state=f"Editing A Lot",
+                                large_image=GetWorldKey(GetWorldName()),
+                                large_text=GetLotName(),
+                                small_image=gamemode_image,
+                                small_text=gamemode_text,
+                                start=start_time)
+        except Exception:
+            pass
+
+
+@inject_to(build_buy, 'c_api_buildbuy_session_end')
+def inject_build_buy_exit(original, zone_id, account_id, **kwargs):
+    global current_zone_id
+
+    # If the zone id is different it's in manage world build/buy so update the presence
+    if current_zone_id != zone_id:
+        try:
+            client.set_activity(details="In Manage Worlds", large_text="Manage Worlds", large_image="menu",
+                                start=start_time)
+        except Exception:
+            pass
+
+
 @inject_to(FamilyFunds, 'send_money_update')
 def update_household_funds(original, self, *args, **kwargs):
     original(self, *args, **kwargs)
     client.set_activity(details=GetWorldName(),
-            state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
-            large_image=GetWorldKey(GetWorldName()),
-            large_text=GetWorldName(),
-            small_image=gamemode_image,
-            small_text=gamemode_text,
-            start=start_time)
+                        state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
+                        large_image=GetWorldKey(GetWorldName()),
+                        large_text=GetLotName(),
+                        small_image=gamemode_image,
+                        small_text=gamemode_text,
+                        start=start_time)
 
 
 # CAS STUFF
-# TODO: Find CAS function
+# TODO: Find CAS function(for new game & in menu)
+
+# World for Live CAS but not in menu(create a household)
+@inject_to(commands, 'client_cheat')
+def inject_cas_load(original, s, context):
+    # Make sure command is "exit2cas"
+    if "exit2cas" in s:
+        global gamemode_text
+        global gamemode_image
+        gamemode_text = "CAS"
+        gamemode_image = "cas"
+        client.set_activity(details=GetWorldName(),
+                            state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
+                            large_image=GetWorldKey(GetWorldName()),
+                            large_text=GetLotName(),
+                            small_image=gamemode_image,
+                            small_text=gamemode_text,
+                            start=start_time)
+    original(s, context)
+
 
 # Functionality Functions
 def GetHouseholdName():
@@ -151,6 +211,10 @@ def GetHouseholdFunds():
 
 def GetWorldName():
     return services.get_persistence_service().get_neighborhood_proto_buf_from_zone_id(services.current_zone_id()).name
+
+
+def GetLotName():
+    return lot.Lot.get_lot_name(self=services.active_lot())
 
 
 def GetWorldKey(world_name):
