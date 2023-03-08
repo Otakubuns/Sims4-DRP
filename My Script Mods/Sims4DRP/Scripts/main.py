@@ -230,3 +230,8 @@ def GetWorldKey(world_name):
     world_key = world_key.replace('-', '_')
     world_key = world_key.lower()
     return world_key
+
+## Easier to use this to write to debug file
+def Write(text):
+    with open(path, 'a') as f:
+        f.write('\n' + text)
