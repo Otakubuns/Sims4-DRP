@@ -15,17 +15,14 @@ It currently:
 - This shouldn't conflict with anything as it's purely a ts4script so it isn't editing anything other mods would.
 - This also shouldn't break during any updates for the same reason.
 
+Mac has not been tested but should work fine.
+
 ## Getting Started
 ### Installing
-
+Make sure you have Rich Presence enabled in: Discord -> User Settings -> Activity Privacy -> Display current activity as a status message.<br><br>
 Go to [releases](https://github.com/Otakubuns/Sims4-DRP/releases) and download the latest release.
 
 Drag the .ts4script into the Mods folder(do NOT unzip the ts4script file).
-
-After that just run up the game and you should be good!
-
-Mac has not been tested but should work fine.
-
 
 ## Future Plans for it are:
 - ~~Show when in CAS(have no clue on this yet).~~ Have it working for in Game CAS(mirror, testingcheats & MCC) but New Game CAS is still a mystery.
