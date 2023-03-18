@@ -20,7 +20,7 @@ It currently:
 
 Go to [releases](https://github.com/Otakubuns/Sims4-DRP/releases) and download the latest release.
 
-Unzip the file and drag the .ts4script into the Mods folder.
+Drag the .ts4script into the Mods folder(do NOT unzip the ts4script file).
 
 After that just run up the game and you should be good!
 
