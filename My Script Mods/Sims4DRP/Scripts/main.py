@@ -219,6 +219,6 @@ def GetLotName():
 
 
 def GetWorldKey(world_name):
-    # Remove any special characters & make lowercase for Discord asset key
-    world_key = re.sub(r'[^a-zA-Z0-9_]', '', world_name).lower()
+    # Remove any special characters & make lowercase
+    world_key = world_name.replace(' ', '_').replace('.', '_').replace('-', '_').lower()
     return world_key
