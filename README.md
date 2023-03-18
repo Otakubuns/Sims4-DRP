@@ -11,7 +11,7 @@ It currently:
 ![image](https://user-images.githubusercontent.com/77337386/205202833-4c7063cb-64b8-4679-93a7-2aeac75948fb.png)
 
 ### Compatibility
-⚠️ If you have BetterExceptions and it say's this mod is the reason why an exception occured its **probably** not. I have added in some try/catch's in case another mod causes issues with loading zones so it doesnt break but itm ay not be perfect. If you do have an exception and it say's its this mod it may be another mod not working due to a new update so please try only with this mod(and BetterExceptions) in your mods folder to make sure.
+⚠️ If you have BetterExceptions and it say's this mod is the reason why an exception occured its **probably** not. I have added in some try/catch's in case another mod causes issues with loading zones so it doesnt break but it may not be perfect. If you do have an exception and it say's its this mod it may be another mod not working due to a new update so please try only with this mod(and BetterExceptions) in your mods folder to make sure.
 - This shouldn't conflict with anything as it's purely a ts4script so it isn't editing anything other mods would.
 - This also shouldn't break during any updates for the same reason.
 
