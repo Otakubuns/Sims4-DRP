@@ -6,7 +6,9 @@ import build_buy
 import rpc
 import services
 import sims4.reload
+import world.region
 from game_services import GameServiceManager, service_manager
+from lib import re
 from sims.funds import FamilyFunds
 from sims4 import commands
 from sims4.service_manager import Service
@@ -212,14 +214,11 @@ def GetHouseholdFunds():
 def GetWorldName():
     return services.get_persistence_service().get_neighborhood_proto_buf_from_zone_id(services.current_zone_id()).name
 
-
 def GetLotName():
     return lot.Lot.get_lot_name(self=services.active_lot())
 
 
 def GetWorldKey(world_name):
-    world_key = world_name.replace(' ', '_')
-    world_key = world_key.replace('.', '_')
-    world_key = world_key.replace('-', '_')
-    world_key = world_key.lower()
+    # Remove any special characters & make lowercase for Discord asset key
+    world_key = re.sub(r'[^a-zA-Z0-9_]', '', world_name).lower()
     return world_key
