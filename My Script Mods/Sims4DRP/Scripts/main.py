@@ -1,4 +1,6 @@
+import io
 import time
+import urllib.request
 from functools import wraps
 from os.path import expanduser
 from time import mktime
@@ -22,9 +24,55 @@ from world import lot
 
 # DRP Variables
 
+req = urllib.request.Request(
+    'https://raw.githubusercontent.com/Otakubuns/Sims4-DRP/master/My%20Script%20Mods/Sims4DRP/Scripts/main.py')
 client_id = '971558123531804742'
 client = rpc.DiscordIpcClient.for_platform(client_id)
 start_time = mktime(time.localtime())
+
+
+def GetWorldDict():
+    world_dict = {}
+
+    # urllib variables
+    url = "https://raw.githubusercontent.com/Otakubuns/Sims4-DRP/master/My%20Script%20Mods/Sims4DRP/Scripts/world_info.txt"
+
+    data = urllib.request.urlopen(url).read().decode('utf-8')
+    buf = io.StringIO(data)
+    for line in buf:
+        value = line.split(' - ')[0].strip().lower().replace(' ', '_').replace('-', '_').replace('.', '_')
+        key = line.split(' - ')[1].strip()
+        world_dict[key] = value
+    return world_dict
+
+
+try:
+    world_dict = GetWorldDict()
+except:
+    # Set to default(current game version is 1.96.365.1030 as of 2023-03-19)
+    world_dict = {'1902162923': 'willow_creek',
+                  '3632553424': 'oasis_springs',
+                  '3942535331': 'newcrest',
+                  '1704446400': 'magnolia_promenade',
+                  '1084260742': 'windenburg',
+                  '4034911840': 'san_myshuno',
+                  '3950992577': 'forgotten_hollow',
+                  '2893613071': 'brindleton_bay',
+                  '2323227531': 'del_sol_valley',
+                  '2018586480': 'strangerville',
+                  '3105469928': 'sulani',
+                  '100140133' : 'glimmerbrook',
+                  '2371324614': 'britechester',
+                  '369359163' : 'evergreen_harbor',
+                  '3002294565': 'mt__komorebi',
+                  '2650041621': 'henford_on_bagley',
+                  '3442073656': 'tartosa',
+                  '1812713502': 'moonwood_mill',
+                  '1505295608': 'copperdale',
+                  '3962653297': 'san_sequoia',
+                  '4131314756': 'granite_falls',
+                  '345901884' : 'selvadorada',
+                  '3755578420': 'batuu'}
 
 
 def inject(target_function, new_function):
@@ -124,6 +172,7 @@ class MyCustomService(Service):
 
 @inject_to(GameServiceManager, 'start_services')
 def start_services(original, self, *args, **kwargs):
+    original(self, *args, **kwargs)
     global _my_custom_service
     try:
         if _my_custom_service is None:
@@ -131,8 +180,6 @@ def start_services(original, self, *args, **kwargs):
             self.register_service(_my_custom_service, is_init_critical=False)
     except:
         pass
-
-    original(self, *args, **kwargs)
 
 
 @inject_to(services, 'on_enter_main_menu')
@@ -145,6 +192,10 @@ def inject_main_menu_load(original):
 def inject_build_buy_enter(original, zone_id, account_id):
     original(zone_id, account_id)
     global current_zone_id
+    global gamemode_text
+    global gamemode_image
+    gamemode_text = "Build/Buy Mode"
+    gamemode_image = "buildbuy"
 
     # If the zone id is different it's in manage world build/buy so update the presence
     if current_zone_id != zone_id:
@@ -209,27 +260,41 @@ def inject_cas_load(original, s, context):
 
 # Functionality Functions
 def GetHouseholdName():
+    if services.active_household() is None:
+        return None
     return services.active_household().name
 
 
 def GetHouseholdFunds():
+    if services.active_household() is None:
+        return None
     return f"{services.active_household().funds.money:,}"
 
 
 def GetWorldName():
+    if services.current_zone_id() is None:
+        return None
     return services.get_persistence_service().get_neighborhood_proto_buf_from_zone_id(services.current_zone_id()).name
 
 
 def GetLotName():
+    if services.active_lot() is None:
+        return None
     return lot.Lot.get_lot_name(self=services.active_lot())
 
 
 def GetWorldKey(world_name):
-    world_key = world_name.replace(' ', '_')
-    world_key = world_key.replace('.', '_')
-    world_key = world_key.replace('-', '_')
-    world_key = world_key.lower()
+    if world_name is None:
+        return None
+
+    world_id = services.get_persistence_service().get_world_id_from_zone(services.current_zone_id())
+    # Check ID compared to dict to see if it's a valid world(if not return generic icon)
+    if world_id not in world_dict:
+        return "icon"
+
+    world_key = world_dict["world_id"]
     return world_key
+
 
 ## Easier to use this to write to debug file
 def Write(text):
