@@ -2,7 +2,6 @@ import io
 import time
 import urllib.request
 from functools import wraps
-from os.path import expanduser
 from time import mktime
 
 import build_buy
@@ -17,8 +16,8 @@ from world import lot
 
 # Sims 4 Discord Rich Presence
 # Created by: Otakubuns
-# Version: 1.0.1
-# Last Updated: 2023-03-08
+# Version: 1.0.2
+# Last Updated: 2023-03-19
 # Description: Adds Discord Rich Presence to The Sims 4 with Injection methods for CAS, Build/Buy, and Live Mode.
 #              Also adds world icons and household funds & name.
 
@@ -61,9 +60,9 @@ except:
                   '2323227531': 'del_sol_valley',
                   '2018586480': 'strangerville',
                   '3105469928': 'sulani',
-                  '100140133' : 'glimmerbrook',
+                  '100140133': 'glimmerbrook',
                   '2371324614': 'britechester',
-                  '369359163' : 'evergreen_harbor',
+                  '369359163': 'evergreen_harbor',
                   '3002294565': 'mt__komorebi',
                   '2650041621': 'henford_on_bagley',
                   '3442073656': 'tartosa',
@@ -71,7 +70,7 @@ except:
                   '1505295608': 'copperdale',
                   '3962653297': 'san_sequoia',
                   '4131314756': 'granite_falls',
-                  '345901884' : 'selvadorada',
+                  '345901884': 'selvadorada',
                   '3755578420': 'batuu'}
 
 
@@ -99,6 +98,7 @@ with sims4.reload.protected(globals()):
 
 def get_my_custom_service():
     return service_manager.my_custom_service
+
 
 # Storage for variables for easier updating
 gamemode_image = None
@@ -153,6 +153,7 @@ def inject_main_menu_load(original):
     client.set_activity(details="Browsing the menu", large_text="Main Menu", large_image="menu", start=start_time)
     original()
 
+
 @inject_to(build_buy, 'c_api_buildbuy_session_begin')
 def inject_build_buy_enter(original, zone_id, account_id):
     original(zone_id, account_id)
@@ -165,13 +166,13 @@ def inject_build_buy_enter(original, zone_id, account_id):
     # If the zone id is different it's in manage world build/buy so update the presence
     try:
         if current_zone_id != zone_id:
-                client.set_activity(details=GetWorldName(),
-                                    state=f"Editing A Lot",
-                                    large_image=GetWorldKey(),
-                                    large_text=GetLotName(),
-                                    small_image=gamemode_image,
-                                    small_text=gamemode_text,
-                                    start=start_time)
+            client.set_activity(details=GetWorldName(),
+                                state=f"Editing A Lot",
+                                large_image=GetWorldKey(),
+                                large_text=GetLotName(),
+                                small_image=gamemode_image,
+                                small_text=gamemode_text,
+                                start=start_time)
 
         else:
             client.set_activity(
@@ -184,6 +185,7 @@ def inject_build_buy_enter(original, zone_id, account_id):
                 start=start_time)
     except Exception:
         pass
+
 
 @inject_to(build_buy, 'c_api_buildbuy_session_end')
 def inject_build_buy_exit(original, zone_id, account_id, **kwargs):
@@ -222,6 +224,7 @@ def update_household_funds(original, self, *args, **kwargs):
                         small_image=gamemode_image,
                         small_text=gamemode_text,
                         start=start_time)
+
 
 # World for Live CAS but not in menu(create a household)
 @inject_to(commands, 'client_cheat')
