@@ -30,8 +30,10 @@ Drag the .ts4script into the Mods folder(do NOT unzip the ts4script file).
 
 ### Issues
 These are a list of issues that I am aware of ATM and either cannot fix or have no plans to:
-- Switching from build/buy to live very quickly will cause the presence to not update those states(everything else will still change accordingly). There is no way to fix this as it's just a matter of the presence update not being sent quick enough as it's changing so quick.
-- I am not super knowledgable about Sims 4 modding/python so there may be better ways to call functions, or any other mistakes.
+- ~~Switching from build/buy to live very quickly will cause the presence to not update those states(everything else will still change accordingly). There is no way to fix this as it's just a matter of the presence update not being sent quick enough as it's changing so quick.~~ Haven't come across this issues anymore but i'll leave here in case it does pop up again.
+
+### Disclaimer
+I am not well versed in Sims 4 modding and my Python knowledge as well is not amazing(C# lover) so there may be better ways to do this. If you do notice something wrong feel free to let me know.
 
 ## Acknowledgments
 I would have never had this done without the **amazing** Sims 4 Modding community and their posts/documentation.
