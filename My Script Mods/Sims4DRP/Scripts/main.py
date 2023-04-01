@@ -29,7 +29,8 @@ req = urllib.request.Request(
 client_id = '971558123531804742'
 client = rpc.DiscordIpcClient.for_platform(client_id)
 start_time = mktime(time.localtime())
-
+#Start presence right as the game starts
+client.set_activity(details="Browsing the menu", large_text="Main Menu", large_image="menu", start=start_time)
 
 def GetWorldDict():
     world_dict = {}
