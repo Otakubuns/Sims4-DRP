@@ -27,7 +27,7 @@ Choose only **one** version. If you don't rename your worlds just grab the basic
 Drag the .ts4script into the Mods folder(do NOT unzip the ts4script file).
 
 ## Future Plans for it are:
-- ~~Show when in CAS(have no clue on this yet).~~ Have it working for in Game CAS(mirror, testingcheats & MCC) but New Game CAS is still a mystery.
+- ~~Show when in CAS(have no clue on this yet).~~ Have it working for in Game CAS(mirror, testingcheats) but New Game CAS is still a mystery.
 - Configuration file for choosing to show household name, funds etc(already started just been lazy).
 
 ### Issues
