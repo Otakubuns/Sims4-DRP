@@ -16,15 +16,12 @@ from world import lot
 
 # Sims 4 Discord Rich Presence
 # Created by: Otakubuns
-# Version: 1.0.2
-# Last Updated: 2023-03-19
+# Version: 1.0.2b
+# Last Updated: 2023-04-01
 # Description: Adds Discord Rich Presence to The Sims 4 with Injection methods for CAS, Build/Buy, and Live Mode.
 #              Also adds world icons and household funds & name.
 
 # DRP Variables
-
-req = urllib.request.Request(
-    'https://raw.githubusercontent.com/Otakubuns/Sims4-DRP/master/My%20Script%20Mods/Sims4DRP/Scripts/main.py')
 client_id = '971558123531804742'
 client = rpc.DiscordIpcClient.for_platform(client_id)
 start_time = mktime(time.localtime())
