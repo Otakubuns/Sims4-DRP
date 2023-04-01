@@ -3,5 +3,6 @@
 settings.py
 decompile_all.py
 *.ts4script
-compile.py
+My Script Mods/Sims4DRP/compile.py
 .idea/
+/My Script Mods/Sims4DRP_CustomWorldName/
