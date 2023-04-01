@@ -14,7 +14,7 @@ It currently:
 ⚠️ If you have BetterExceptions and it say's this mod is the reason why an exception occured its **probably** not. I have added in some try/catch's in case another mod causes issues with loading zones so it doesnt break but it may not be perfect. If you do have an exception and it say's its this mod it may be another mod not working due to a new update so please try only with this mod(and BetterExceptions) in your mods folder to make sure.
 - This shouldn't conflict with anything as it's purely a ts4script so it isn't editing anything other mods would.
 - This also shouldn't break during any updates for the same reason(big updates might cause it to break).
-- This is compatible with changing your save games world name(like using [SrslySims World Rename Tool](https://srslysims.net/downloads/world-rename-tool/)). The renamed world will show up in your presence as the world name but the icon will be the original world you renamed.
+- If you rename your world (like using [SrslySims World Rename Tool](https://srslysims.net/downloads/world-rename-tool/)) there a compatiable version. The renamed world will show up in your presence as the world name but the icon will be the original world you renamed.
 
 Mac has not been tested but should work fine.
 
@@ -23,6 +23,7 @@ Mac has not been tested but should work fine.
 Make sure you have Rich Presence enabled in: Discord -> User Settings -> Activity Privacy -> Display current activity as a status message.<br><br>
 Go to [releases](https://github.com/Otakubuns/Sims4-DRP/releases) and download the latest release.
 
+Choose only **one** version. If you don't rename your worlds just grab the basic one, if you do grab the CustomWorldNames version.
 Drag the .ts4script into the Mods folder(do NOT unzip the ts4script file).
 
 ## Future Plans for it are:
