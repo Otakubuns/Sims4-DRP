@@ -23,7 +23,7 @@ Mac has not been tested but should work fine.
 Make sure you have Rich Presence enabled in: Discord -> User Settings -> Activity Privacy -> Display current activity as a status message.<br><br>
 Go to [releases](https://github.com/Otakubuns/Sims4-DRP/releases) and download the latest release.
 
-Choose only **one** version. If you don't rename your worlds just grab the basic one, if you do grab the CustomWorldNames version.
+Choose only **one** version. If you don't rename your worlds just grab the basic one, if you do grab the CustomWorldNames version.<br>
 Drag the .ts4script into the Mods folder(do NOT unzip the ts4script file).
 
 ## Future Plans for it are:
