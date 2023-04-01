@@ -1,8 +1,5 @@
-import io
 import time
-import urllib.request
 from functools import wraps
-from os.path import expanduser
 from time import mktime
 
 import build_buy
@@ -17,63 +14,18 @@ from world import lot
 
 # Sims 4 Discord Rich Presence
 # Created by: Otakubuns
-# Version: 1.0.1
-# Last Updated: 2023-03-08
+# Version: 1.0.2
+# Last Updated: 2023-04-01
 # Description: Adds Discord Rich Presence to The Sims 4 with Injection methods for CAS, Build/Buy, and Live Mode.
 #              Also adds world icons and household funds & name.
 
 # DRP Variables
-
-req = urllib.request.Request(
-    'https://raw.githubusercontent.com/Otakubuns/Sims4-DRP/master/My%20Script%20Mods/Sims4DRP/Scripts/main.py')
 client_id = '971558123531804742'
 client = rpc.DiscordIpcClient.for_platform(client_id)
 start_time = mktime(time.localtime())
-#Start presence right as the game starts
+
+# Start presence right as the game starts
 client.set_activity(details="Browsing the menu", large_text="Main Menu", large_image="menu", start=start_time)
-
-def GetWorldDict():
-    world_dict = {}
-
-    # urllib variables
-    url = "https://raw.githubusercontent.com/Otakubuns/Sims4-DRP/master/My%20Script%20Mods/Sims4DRP/Scripts/world_info.txt"
-
-    data = urllib.request.urlopen(url).read().decode('utf-8')
-    buf = io.StringIO(data)
-    for line in buf:
-        value = line.split(' - ')[0].strip().lower().replace(' ', '_').replace('-', '_').replace('.', '_')
-        key = line.split(' - ')[1].strip()
-        world_dict[key] = value
-    return world_dict
-
-
-try:
-    world_dict = GetWorldDict()
-except:
-    # Set to default(current game version is 1.96.365.1030 as of 2023-03-19)
-    world_dict = {'1902162923': 'willow_creek',
-                  '3632553424': 'oasis_springs',
-                  '3942535331': 'newcrest',
-                  '1704446400': 'magnolia_promenade',
-                  '1084260742': 'windenburg',
-                  '4034911840': 'san_myshuno',
-                  '3950992577': 'forgotten_hollow',
-                  '2893613071': 'brindleton_bay',
-                  '2323227531': 'del_sol_valley',
-                  '2018586480': 'strangerville',
-                  '3105469928': 'sulani',
-                  '100140133' : 'glimmerbrook',
-                  '2371324614': 'britechester',
-                  '369359163' : 'evergreen_harbor',
-                  '3002294565': 'mt__komorebi',
-                  '2650041621': 'henford_on_bagley',
-                  '3442073656': 'tartosa',
-                  '1812713502': 'moonwood_mill',
-                  '1505295608': 'copperdale',
-                  '3962653297': 'san_sequoia',
-                  '4131314756': 'granite_falls',
-                  '345901884' : 'selvadorada',
-                  '3755578420': 'batuu'}
 
 
 def inject(target_function, new_function):
@@ -101,9 +53,6 @@ with sims4.reload.protected(globals()):
 def get_my_custom_service():
     return service_manager.my_custom_service
 
-
-#### FOR DEBUG (Is removed in release)####
-path = expanduser('~/Documents/Electronic Arts/The Sims 4/Mods/TESTING/DRP.txt')
 
 # Storage for variables for easier updating
 gamemode_image = None
@@ -158,6 +107,7 @@ def inject_main_menu_load(original):
     client.set_activity(details="Browsing the menu", large_text="Main Menu", large_image="menu", start=start_time)
     original()
 
+
 @inject_to(build_buy, 'c_api_buildbuy_session_begin')
 def inject_build_buy_enter(original, zone_id, account_id):
     original(zone_id, account_id)
@@ -170,13 +120,13 @@ def inject_build_buy_enter(original, zone_id, account_id):
     # If the zone id is different it's in manage world build/buy so update the presence
     try:
         if current_zone_id != zone_id:
-                client.set_activity(details=GetWorldName(),
-                                    state=f"Editing A Lot",
-                                    large_image=GetWorldKey(),
-                                    large_text=GetLotName(),
-                                    small_image=gamemode_image,
-                                    small_text=gamemode_text,
-                                    start=start_time)
+            client.set_activity(details=GetWorldName(),
+                                state=f"Editing A Lot",
+                                large_image=GetWorldKey(),
+                                large_text=GetLotName(),
+                                small_image=gamemode_image,
+                                small_text=gamemode_text,
+                                start=start_time)
 
         else:
             client.set_activity(
@@ -189,6 +139,7 @@ def inject_build_buy_enter(original, zone_id, account_id):
                 start=start_time)
     except Exception:
         pass
+
 
 @inject_to(build_buy, 'c_api_buildbuy_session_end')
 def inject_build_buy_exit(original, zone_id, account_id, **kwargs):
@@ -228,9 +179,6 @@ def update_household_funds(original, self, *args, **kwargs):
                         small_text=gamemode_text,
                         start=start_time)
 
-
-# CAS STUFF
-# TODO: Find CAS function(for new game & in menu)
 
 # World for Live CAS but not in menu(create a household)
 @inject_to(commands, 'client_cheat')
@@ -277,18 +225,8 @@ def GetLotName():
 
 
 def GetWorldKey():
-    world_id = services.get_persistence_service().get_world_id_from_zone(services.current_zone_id())
-    if world_id is None:
+    world_name = GetWorldName()
+    if world_name is None:
         return "menu"
-    # Check ID compared to dict to see if it's a valid world(if not return generic icon)
-    if str(world_id) not in world_dict:
-        return "menu"
-
-    world_key = world_dict[str(world_id)]
+    world_key = world_name.replace(' ', '_').replace('.', '_').replace('-', '_').lower()
     return world_key
-
-
-## Easier to use this to write to debug file
-def Write(text):
-    with open(path, 'a') as f:
-        f.write('\n' + text)
