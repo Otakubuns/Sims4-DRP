@@ -5,14 +5,14 @@
 # * https://github.com/discordapp/discord-rpc/tree/master/src
 # * https://discordapp.com/developers/docs/rich-presence/how-to#updating-presence-update-presence-payload-fields
 
-from abc import ABCMeta, abstractmethod
 import json
 import logging
 import os
 import socket
-import sys
 import struct
+import sys
 import uuid
+from abc import ABCMeta, abstractmethod
 
 OP_HANDSHAKE = 0
 OP_FRAME = 1
@@ -27,9 +27,7 @@ class DiscordIpcError(Exception):
     pass
 
 
-
 class DiscordIpcClient(metaclass=ABCMeta):
-
     """Work with an open Discord instance via its JSON IPC for its rich presence API.
 
     In a blocking way.
@@ -40,10 +38,14 @@ class DiscordIpcClient(metaclass=ABCMeta):
     """
 
     def __init__(self, client_id):
-        self.client_id = client_id
-        self._connect()
-        self._do_handshake()
-        logger.info("connected via ID %s", client_id)
+        try:
+            self.client_id = client_id
+            self._connect()
+            self._do_handshake()
+            logger.info("connected via ID %s", client_id)
+        # If Discord is not running it will throw an error in connect & not continue
+        except DiscordIpcError as e:
+            logger.error("Discord is not running. Please start Discord and try again.")
 
     @classmethod
     def for_platform(cls, client_id, platform=sys.platform):
@@ -128,28 +130,28 @@ class DiscordIpcClient(metaclass=ABCMeta):
         return op, data
 
     # Edited from pypresence for convenience(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/presence.py)
-    def set_activity(self, state=None, details=None,start=None,large_image=None,large_text=None,
-                    small_image=None,small_text=None):
+    def set_activity(self, state=None, details=None, start=None, large_image=None, large_text=None,
+                     small_image=None, small_text=None):
         try:
             data = {
-            "cmd": 'SET_ACTIVITY',
-            "args": {
-                "pid": os.getpid(),
-                "activity": {
-                    "state": state,
-                    "details": details,
-                    "timestamps": {
-                        "start": start,
-                    },
-                    "assets": {
-                        "large_image": large_image,
-                        "large_text": large_text,
-                        "small_image": small_image,
-                        "small_text": small_text
+                "cmd": 'SET_ACTIVITY',
+                "args": {
+                    "pid": os.getpid(),
+                    "activity": {
+                        "state": state,
+                        "details": details,
+                        "timestamps": {
+                            "start": start,
+                        },
+                        "assets": {
+                            "large_image": large_image,
+                            "large_text": large_text,
+                            "small_image": small_image,
+                            "small_text": small_text
+                        },
                     },
                 },
-            },
-            "nonce": str(uuid.uuid4())
+                "nonce": str(uuid.uuid4())
             }
             data = remove_none(data)
             self.send(data)
@@ -157,9 +159,8 @@ class DiscordIpcClient(metaclass=ABCMeta):
             pass
 
 
-
 # Taken from pypresence(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/utils.py)
-def remove_none(d: dict): # Made by https://github.com/LewdNeko ;^)
+def remove_none(d: dict):  # Made by https://github.com/LewdNeko ;^)
     for item in d.copy():
         if isinstance(d[item], dict):
             if len(d[item]):
@@ -169,8 +170,9 @@ def remove_none(d: dict): # Made by https://github.com/LewdNeko ;^)
         elif d[item] is None:
             del d[item]
     return d
-class WinDiscordIpcClient(DiscordIpcClient):
 
+
+class WinDiscordIpcClient(DiscordIpcClient):
     _pipe_pattern = R'\\?\pipe\discord-ipc-{}'
 
     def _connect(self):
@@ -183,8 +185,7 @@ class WinDiscordIpcClient(DiscordIpcClient):
             else:
                 break
         else:
-            return DiscordIpcError("Failed to connect to Discord pipe")
-
+            raise DiscordIpcError("Failed to connect to Discord pipe")
         self.path = path
 
     def _write(self, data: bytes):
