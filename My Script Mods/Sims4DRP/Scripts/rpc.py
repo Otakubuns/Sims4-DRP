@@ -24,7 +24,7 @@ OP_PONG = 4
 
 
 # Easier to use this to write to debug file(also here because I think the presence updates too quickly and crashes)
-file_path= os.path.join(Path(__file__).resolve().parent.parent.parent.parent, 'DiscordRPCLog.txt')
+file_path= os.path.expanduser(os.path.join('~', 'Documents', 'Electronic Arts', 'The Sims 4', 'DiscordRPCLog.txt'))
 def Write(*args):
     with open(file_path, 'a') as f:
         text = ' '.join([str(arg) for arg in args])
