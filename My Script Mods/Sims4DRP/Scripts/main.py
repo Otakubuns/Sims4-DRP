@@ -68,7 +68,7 @@ class MyCustomService(Service):
             details=GetWorldName(),
             state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
             large_image=GetWorldKey(),
-            large_text=GetWorldName(),
+            large_text=GetLotName(),
             small_image=gamemode_image,
             small_text=gamemode_text,
             start=start_time)
@@ -102,7 +102,7 @@ class MyCustomService(Service):
                 details=GetWorldName(),
                 state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
                 large_image=GetWorldKey(),
-                large_text=GetWorldName(),
+                large_text=GetLotName(),
                 small_image=gamemode_image,
                 small_text=gamemode_text,
                 start=start_time)
@@ -122,7 +122,7 @@ class MyCustomService(Service):
                 details=GetWorldName(),
                 state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
                 large_image=GetWorldKey(),
-                large_text=GetWorldName(),
+                large_text=GetLotName(),
                 small_image=gamemode_image,
                 small_text=gamemode_text,
                 start=start_time)
@@ -149,7 +149,6 @@ def inject_main_menu_load(original):
 
 @inject_to(FamilyFunds, 'send_money_update')
 def update_household_funds(original, self, *args, **kwargs):
-    original(self, *args, **kwargs)
     client.set_activity(details=GetWorldName(),
                         state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
                         large_image=GetWorldKey(),
@@ -157,6 +156,7 @@ def update_household_funds(original, self, *args, **kwargs):
                         small_image=gamemode_image,
                         small_text=gamemode_text,
                         start=start_time)
+    original(self, *args, **kwargs)
 
 
 # World for Live CAS but not in menu(create a household)
