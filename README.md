@@ -10,7 +10,10 @@ It currently:
   - Shows household money and updates when it changes
   - Shows when in CAS in game(not New Game(yet))
  
-![image](https://github.com/Otakubuns/Sims4-DRP/assets/77337386/001d8104-1d29-4efd-925c-55cee968e1d9)
+![preview_gif](https://github.com/Otakubuns/Sims4-DRP/assets/77337386/7cca21f3-935d-4d47-b710-f40e1f436b6c)
+
+
+
 
 
 ### Compatibility
