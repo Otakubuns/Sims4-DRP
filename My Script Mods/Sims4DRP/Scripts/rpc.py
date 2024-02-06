@@ -6,15 +6,14 @@
 # * https://discordapp.com/developers/docs/rich-presence/how-to#updating-presence-update-presence-payload-fields
 
 import json
+import logging
 import os
 import socket
 import struct
 import sys
-from time import sleep
 import time
 import uuid
 from abc import ABCMeta, abstractmethod
-from pathlib import Path
 
 OP_HANDSHAKE = 0
 OP_FRAME = 1
@@ -22,18 +21,6 @@ OP_CLOSE = 2
 OP_PING = 3
 OP_PONG = 4
 
-
-# Easier to use this to write to debug file(also here because I think the presence updates too quickly and crashes)
-file_path= os.path.expanduser(os.path.join('~', 'Documents', 'Electronic Arts', 'The Sims 4', 'DiscordRPCLog.txt'))
-def Write(*args):
-    with open(file_path, 'a') as f:
-        text = ' '.join([str(arg) for arg in args])
-        current_time = time.strftime("%H:%M:%S", time.localtime())
-        f.write('\n' + current_time + ": " + text)
-
-def ClearFile():
-    with open(file_path, 'w') as f:
-        f.write('')
 
 class DiscordIpcError(Exception):
     pass
@@ -50,16 +37,13 @@ class DiscordIpcClient(metaclass=ABCMeta):
     """
 
     def __init__(self, client_id):
+        # Make sure Discord is running
         try:
-            ClearFile()
             self.client_id = client_id
             self._connect()
             self._do_handshake()
-            Write("connected via ID %s", client_id)
-        # If Discord is not running it will throw an error in connect & not continue
         except DiscordIpcError as e:
             pass
-            Write("Discord is not running. Please start Discord and try again.")
 
     @classmethod
     def for_platform(cls, client_id, platform=sys.platform):
@@ -104,7 +88,6 @@ class DiscordIpcClient(metaclass=ABCMeta):
         return buf
 
     def close(self):
-        Write("closing connection")
         try:
             self.send({}, op=OP_CLOSE)
         finally:
@@ -125,8 +108,6 @@ class DiscordIpcClient(metaclass=ABCMeta):
         return self.recv()
 
     def send(self, data: dict, op=OP_FRAME):
-        ClearFile()
-        Write("sending: ", data)
         data_str = json.dumps(data, separators=(',', ':'))
         data_bytes = data_str.encode('utf-8')
         header = struct.pack("<II", op, len(data_bytes))
@@ -141,37 +122,34 @@ class DiscordIpcClient(metaclass=ABCMeta):
         op, length = self._recv_header()
         payload = self._recv_exactly(length)
         data = json.loads(payload.decode('utf-8'))
-        #Write("received %s", data)
         return op, data
 
     # Edited from pypresence for convenience(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/presence.py)
     def set_activity(self, state=None, details=None, start=None, large_image=None, large_text=None,
                      small_image=None, small_text=None):
-        try:
-            data = {
-                "cmd": 'SET_ACTIVITY',
-                "args": {
-                    "pid": os.getpid(),
-                    "activity": {
-                        "state": state,
-                        "details": details,
-                        "timestamps": {
-                            "start": start,
-                        },
-                        "assets": {
-                            "large_image": large_image,
-                            "large_text": large_text,
-                            "small_image": small_image,
-                            "small_text": small_text
-                        },
+        delay(0.5)
+        data = {
+            "cmd": 'SET_ACTIVITY',
+            "args": {
+                "pid": os.getpid(),
+                "activity": {
+                    "state": state,
+                    "details": details,
+                    "timestamps": {
+                        "start": start,
+                    },
+                    "assets": {
+                        "large_image": large_image,
+                        "large_text": large_text,
+                        "small_image": small_image,
+                        "small_text": small_text
                     },
                 },
-                "nonce": str(uuid.uuid4())
-            }
-            data = remove_none(data)
-            self.send(data)
-        except Exception as e:
-            pass
+            },
+            "nonce": str(uuid.uuid4())
+        }
+        data = remove_none(data)
+        self.send(data)
 
 
 # Taken from pypresence(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/utils.py)
@@ -188,20 +166,20 @@ def remove_none(d: dict):  # Made by https://github.com/LewdNeko ;^)
 
 
 class WinDiscordIpcClient(DiscordIpcClient):
-    _pipe_pattern = R'\\?\pipe\discord-ipc-{}'
+    _pipe_pattern = r'\\?\pipe\discord-ipc-{}'
 
     def _connect(self):
         for i in range(10):
             path = self._pipe_pattern.format(i)
             try:
                 self._f = open(path, "w+b")
+                self.path = path
+                break
             except OSError as e:
                 pass
-                #Write("failed to open {!r}: {}".format(path, e))
-            else:
-                break
         else:
-            raise DiscordIpcError("Failed to connect to Discord pipe")
+            return DiscordIpcError("Failed to connect to Discord pipe")
+
         self.path = path
 
     def _write(self, data: bytes):
@@ -228,7 +206,6 @@ class UnixDiscordIpcClient(DiscordIpcClient):
             try:
                 self._sock.connect(path)
             except OSError as e:
-                #logger.warning("failed to open {!r}: {}".format(path, e))
                 pass
             else:
                 break
@@ -254,3 +231,10 @@ class UnixDiscordIpcClient(DiscordIpcClient):
 
     def _close(self):
         self._sock.close()
+
+
+
+def delay(seconds):
+    start_time = time.time()
+    while time.time() - start_time < seconds:
+        pass
