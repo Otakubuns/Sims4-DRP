@@ -15,9 +15,9 @@ from world import lot
 
 # Sims 4 Discord Rich Presence
 # Created by: Otakubuns
-# Version: 1.0.4
-# Last Updated: 2023-12-16
-# Description: Adds Discord Rich Presence to The Sims 4 with Injection methods for CAS, Build/Buy, and Live Mode.
+# Version: 1.0.5
+# Last Updated: 2024-02-06
+# Description: Adds Discord Rich Presence to The Sims 4 with injection methods for CAS, Build/Buy, and Live Mode.
 #              Also adds world icons, household funds & name.
 
 # DRP Variables
