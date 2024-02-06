@@ -127,29 +127,32 @@ class DiscordIpcClient(metaclass=ABCMeta):
     # Edited from pypresence for convenience(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/presence.py)
     def set_activity(self, state=None, details=None, start=None, large_image=None, large_text=None,
                      small_image=None, small_text=None):
-        delay(0.5)
-        data = {
-            "cmd": 'SET_ACTIVITY',
-            "args": {
-                "pid": os.getpid(),
-                "activity": {
-                    "state": state,
-                    "details": details,
-                    "timestamps": {
-                        "start": start,
-                    },
-                    "assets": {
-                        "large_image": large_image,
-                        "large_text": large_text,
-                        "small_image": small_image,
-                        "small_text": small_text
+        try:
+            delay(0.5)
+            data = {
+                "cmd": 'SET_ACTIVITY',
+                "args": {
+                    "pid": os.getpid(),
+                    "activity": {
+                        "state": state,
+                        "details": details,
+                        "timestamps": {
+                            "start": start,
+                        },
+                        "assets": {
+                            "large_image": large_image,
+                            "large_text": large_text,
+                            "small_image": small_image,
+                            "small_text": small_text
+                        },
                     },
                 },
-            },
-            "nonce": str(uuid.uuid4())
-        }
-        data = remove_none(data)
-        self.send(data)
+                "nonce": str(uuid.uuid4())
+            }
+            data = remove_none(data)
+            self.send(data)
+        except:
+            pass
 
 
 # Taken from pypresence(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/utils.py)
@@ -231,7 +234,6 @@ class UnixDiscordIpcClient(DiscordIpcClient):
 
     def _close(self):
         self._sock.close()
-
 
 
 def delay(seconds):
