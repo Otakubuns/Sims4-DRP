@@ -42,7 +42,7 @@ class DiscordIpcClient(metaclass=ABCMeta):
             self.client_id = client_id
             self._connect()
             self._do_handshake()
-        except DiscordIpcError as e:
+        except Exception as e:
             pass
 
     @classmethod
@@ -64,7 +64,7 @@ class DiscordIpcClient(metaclass=ABCMeta):
         else:
             if ret_op == OP_CLOSE:
                 self.close()
-            raise RuntimeError(ret_data)
+            return RuntimeError(ret_data)
 
     @abstractmethod
     def _write(self, date: bytes):
@@ -127,8 +127,8 @@ class DiscordIpcClient(metaclass=ABCMeta):
     # Edited from pypresence for convenience(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/presence.py)
     def set_activity(self, state=None, details=None, start=None, large_image=None, large_text=None,
                      small_image=None, small_text=None):
+        delay(0.5)
         try:
-            delay(0.5)
             data = {
                 "cmd": 'SET_ACTIVITY',
                 "args": {
