@@ -10,7 +10,11 @@ It currently:
   - Shows household money and updates when it changes
   - Shows when in CAS in game(not New Game(yet))
  
-![image](https://user-images.githubusercontent.com/77337386/205202833-4c7063cb-64b8-4679-93a7-2aeac75948fb.png)
+![preview_gif](https://github.com/Otakubuns/Sims4-DRP/assets/77337386/7cca21f3-935d-4d47-b710-f40e1f436b6c)
+
+
+
+
 
 ### Compatibility
 Mac has not been tested but should work fine.
@@ -20,9 +24,6 @@ Mac has not been tested but should work fine.
 Make sure you have Rich Presence enabled in: Discord -> User Settings -> Activity Privacy -> Display current activity as a status message.<br><br>
 Go to [releases](https://github.com/Otakubuns/Sims4-DRP/releases) and download the latest release.
 
-Choose only **one** version. If you don't rename your worlds just grab the basic one, if you do grab the CustomWorldNames version.<br>
-Drag the .ts4script into the Mods folder(do NOT unzip the ts4script file).
-
 ## Future Plans for it are:
 - ~~Show when in CAS(have no clue on this yet).~~ Have it working for in Game CAS(mirror, testingcheats) but New Game CAS is still a mystery.
 - Configuration file for choosing to show household name, funds etc(already started just been lazy).
@@ -31,7 +32,6 @@ Drag the .ts4script into the Mods folder(do NOT unzip the ts4script file).
 ### Issues
 These are a list of issues that I am aware of ATM and either cannot fix or have no plans to:
 - ~~Switching from build/buy to live very quickly will cause the presence to not update those states(everything else will still change accordingly). There is no way to fix this as it's just a matter of the presence update not being sent quick enough as it's changing so quick.~~ Haven't come across these issues anymore but i'll leave here in case it does pop up again.
-- The log file is not only to send in if the presence is being incorrectly updated but for some reason, it breaks the presence due to the function being sent in too quickly so ATM its there to be help for the oresence does update.
 
 ### Disclaimer
 I am not well versed in Sims 4 modding and my Python knowledge as well is not amazing(C# lover) so there may be better ways to do this. If you do notice something wrong feel free to let me know.
