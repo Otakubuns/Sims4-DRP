@@ -30,6 +30,7 @@ Go to [releases](https://github.com/Otakubuns/Sims4-DRP/releases) and download t
 ### Issues
 These are a list of issues that I am aware of ATM and either cannot fix or have no plans to:
 - ~~Switching from build/buy to live very quickly will cause the presence to not update those states(everything else will still change accordingly). There is no way to fix this as it's just a matter of the presence update not being sent quick enough as it's changing so quick.~~ Haven't come across these issues anymore but i'll leave here in case it does pop up again.
+- If using Better Exceptions, when an exception occurs and it is scanning your mods folder, the presence will break. It will come back once Better Exceptions is done scanning your mods folder.
 
 ### Disclaimer
 I am not well versed in Sims 4 modding and my Python knowledge as well is not amazing(C# lover) so there may be better ways to do this. If you do notice something wrong feel free to let me know.
