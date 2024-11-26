@@ -1,9 +1,12 @@
+# coding=utf-8
+import logging
 import time
 from functools import wraps
 from time import mktime
 
 import build_buy
 import rpc
+from clock import GameClock
 import services
 import sims4.reload
 from game_services import GameServiceManager, service_manager
@@ -12,6 +15,7 @@ from sims.household_utilities.utilities_manager import ZoneUtilitiesManager
 from sims4 import commands
 from sims4.service_manager import Service
 from world import lot
+from logger import logger
 
 # Sims 4 Discord Rich Presence
 # Created by: Otakubuns
@@ -29,8 +33,10 @@ start_time = mktime(time.localtime())
 with sims4.reload.protected(globals()):
     _my_custom_service = None
 
+
 def get_my_custom_service():
     return service_manager.my_custom_service
+
 
 def inject(target_function, new_function):
     @wraps(target_function)
@@ -52,6 +58,27 @@ def inject_to(target_object, target_function_name):
 # Storage for variables for easier updating
 gamemode_image = None
 gamemode_text = None
+
+def setup_logger():
+    # Create a logger object
+    logger = logging.getLogger('my_logger')
+
+    # Set the level of this logger. DEBUG means that all messages of level DEBUG and above will be tracked
+    logger.setLevel(logging.DEBUG)
+
+    # Create a file handler for the logger. 'w' mode means the log file will be overwritten each time the application starts
+    file_handler = logging.FileHandler('C:\\Users\\alexu\\Documents\\Electronic Arts\\The Sims 4\\Mods\\discordRPC.log', mode='w')
+
+    # Create a formatter. This will format the log messages in a specific format.
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    # Set the formatter for the file handler
+    file_handler.setFormatter(formatter)
+
+    # Add the file handler to the logger
+    logger.addHandler(file_handler)
+
+    return logger
 
 
 class MyCustomService(Service):
@@ -146,7 +173,6 @@ def inject_main_menu_load(original):
     client.set_activity(details="Browsing the menu", large_text="Main Menu", large_image="menu", start=start_time)
     original()
 
-
 @inject_to(FamilyFunds, 'send_money_update')
 def update_household_funds(original, self, *args, **kwargs):
     client.set_activity(details=GetWorldName(),
@@ -177,13 +203,11 @@ def inject_cas_load(original, s, context):
                             start=start_time)
     original(s, context)
 
-
 # Functionality Functions
 def GetHouseholdName():
     if services.active_household() is None:
         return None
     return services.active_household().name
-
 
 def GetHouseholdFunds():
     if services.active_household() is None:
@@ -196,6 +220,10 @@ def GetWorldName():
         return None
     return services.get_persistence_service().get_neighborhood_proto_buf_from_zone_id(services.current_zone_id()).name
 
+def GetWorldKey():
+    if services.current_zone_id() is None:
+        return None
+    return str(services.get_persistence_service().get_neighborhood_proto_buf_from_zone_id(services.current_zone_id()).region_id)
 
 def GetLotName():
     if services.active_lot() is None:
@@ -203,9 +231,8 @@ def GetLotName():
     return lot.Lot.get_lot_name(self=services.active_lot())
 
 
-def GetWorldKey():
-    world_name = GetWorldName()
-    if world_name is None:
-        return "menu"
-    world_key = world_name.replace(' ', '_').replace('.', '_').replace('-', '_').lower()
-    return world_key
+# TODO: Allow config file for custom text and icon texts
+def LoadConfig():
+    pass
+
+

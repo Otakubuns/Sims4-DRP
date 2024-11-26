@@ -6,15 +6,14 @@
 # * https://discordapp.com/developers/docs/rich-presence/how-to#updating-presence-update-presence-payload-fields
 
 import json
-import logging
 import os
 import socket
 import struct
 import sys
-import threading
 import time
 import uuid
 from abc import ABCMeta, abstractmethod
+from logger import logger
 
 OP_HANDSHAKE = 0
 OP_FRAME = 1
@@ -38,18 +37,24 @@ class DiscordIpcClient(metaclass=ABCMeta):
     """
 
     def __init__(self, client_id):
-        self.client_id = client_id
-        self.connection_established = False
-        self._connect_and_handshake()
+        try:
+            self.client_id = client_id
+            self.connection_established = False
+            self._connect_and_handshake()
+        except Exception as e:
+            self.connection_established = False
+            logger.error(f'{e}')
 
     def _connect_and_handshake(self):
         try:
             self._connect()
+            if not hasattr(self, '_f') or self._f is None:
+                raise DiscordIpcError("Failed to initialize connection: Discord pipe not available.")
             self._do_handshake()
             self.connection_established = True
-        except Exception as e:
+        except Exception:
             self.connection_established = False
-
+            raise DiscordIpcError("Couldn't initialize connection to Discord. Make sure Discord is running.")
 
     @classmethod
     def for_platform(cls, client_id, platform=sys.platform):
@@ -117,11 +122,14 @@ class DiscordIpcClient(metaclass=ABCMeta):
         return self.recv()
 
     def send(self, data: dict, op=OP_FRAME):
-        data_str = json.dumps(data, separators=(',', ':'))
-        data_bytes = data_str.encode('utf-8')
-        header = struct.pack("<II", op, len(data_bytes))
-        self._write(header)
-        self._write(data_bytes)
+        try:
+            data_str = json.dumps(data, separators=(',', ':'))
+            data_bytes = data_str.encode('utf-8')
+            header = struct.pack("<II", op, len(data_bytes))
+            self._write(header)
+            self._write(data_bytes)
+        except Exception as e:
+            self.connection_established = False
 
     def recv(self) -> (int, "JSON"):
         """Receives a packet from discord.
@@ -136,8 +144,15 @@ class DiscordIpcClient(metaclass=ABCMeta):
     # Edited from pypresence for convenience(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/presence.py)
     def set_activity(self, state=None, details=None, start=None, large_image=None, large_text=None,
                      small_image=None, small_text=None):
-        delay(0.5)
+        """Set activity for the user, reconnecting only if Discord is open."""
+        delay(0.5)  # Prevent spamming Discord API
         try:
+            if not self.connection_established:
+                if not self._is_discord_open():
+                    return
+                logger.info("Connection not established. Attempting to reconnect...")
+                self._connect_and_handshake()
+
             data = {
                 "cmd": 'SET_ACTIVITY',
                 "args": {
@@ -159,13 +174,43 @@ class DiscordIpcClient(metaclass=ABCMeta):
                 "nonce": str(uuid.uuid4())
             }
             data = remove_none(data)
-            self.send(data)
-        except Exception as e:
+            self.send(data)  # Attempt to send the activity data
+        except OSError as e:
+            if e.errno == 22:
+                pass
+            else:
+                logger.error(f"Unexpected OSError during activity update: {str(e)}")
             self.connection_established = False
-            self._connect_and_handshake()
+        except Exception as e:
+            logger.error(f"Unexpected error while setting activity: {str(e)}")
+            self.connection_established = False
 
-            if self.connection_established:
-                self.set_activity(state, details, start, large_image, large_text, small_image, small_text)
+    def check_connection(self):
+        pass
+
+    def _is_discord_open(self):
+        """Check if Discord is running by attempting a lightweight connection."""
+        try:
+            # Attempt to connect to the IPC without fully initializing
+            self._connect()
+            # If `_connect` is successful, check for `_f` (Windows) or `_sock` (Unix)
+            if hasattr(self, '_f') and self._f:
+                self._close()  # Close the connection immediately after the check
+                return True
+            elif hasattr(self, '_sock') and self._sock:
+                self._close()
+                return True
+            else:
+                return False
+        except OSError as e:
+            if e.errno != 22:  # Invalid argument
+                pass
+            else:
+                logger.error(f"OSError while checking Discord connection: {str(e)}")
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected error while checking Discord connection: {str(e)}")
+            return False
 
 # Taken from pypresence(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/utils.py)
 def remove_none(d: dict):  # Made by https://github.com/LewdNeko ;^)
