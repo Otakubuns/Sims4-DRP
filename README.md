@@ -19,7 +19,7 @@ Mac has not been tested but should work fine.
 ### Installing
 1. Make sure you have Rich Presence enabled in: Discord -> User Settings -> Activity Privacy -> Display current activity as a status message.
 2. Go to [releases](https://github.com/Otakubuns/Sims4-DRP/releases) and download the latest release.
-3. I have included a folder to easier drop into your mods folder with the config file, but if you so choose you can just drop the the files into your mods folder.
+3. I have included a folder to easily drop into your mods folder with the config file, but if you so choose you can just drop the the files into your mods folder.
 
 ### Configuration
 The configuration file should be in the same folder as the `.ts4script`. It is called `discordRPC.cfg`. There are instructions in the file as well as here. If the file is not there, the mod will just use the default settings built into the mod.
