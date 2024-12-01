@@ -2,8 +2,6 @@
 
 This is a mod for The Sims 4 utilizing Discord Rich Presence.
 
-Make sure to have Discord open **before** TS4. If you don't the presence won't show.
-
 It currently:
   - Shows current world & Household Name
   - Shows when in Build/Buy (with small images for gamemode(build/buy & live))
@@ -27,11 +25,12 @@ Go to [releases](https://github.com/Otakubuns/Sims4-DRP/releases) and download t
 ## Future Plans for it are:
 - ~~Show when in CAS(have no clue on this yet).~~ Have it working for in Game CAS(mirror, testingcheats) but New Game CAS is still a mystery.
 - Configuration file for choosing to show household name, funds etc(already started just been lazy).
-- Allow Discord to be open after TS4 and still update presence.
+- ~~Allow Discord to be open after TS4 and still update presence.~~ Implemented in [1.0.6](https://github.com/Otakubuns/Sims4-DRP/releases/tag/1.0.6)
 
 ### Issues
 These are a list of issues that I am aware of ATM and either cannot fix or have no plans to:
 - ~~Switching from build/buy to live very quickly will cause the presence to not update those states(everything else will still change accordingly). There is no way to fix this as it's just a matter of the presence update not being sent quick enough as it's changing so quick.~~ Haven't come across these issues anymore but i'll leave here in case it does pop up again.
+- If using Better Exceptions, when an exception occurs and it is scanning your mods folder, the presence will break. It will come back once Better Exceptions is done scanning your mods folder.
 
 ### Disclaimer
 I am not well versed in Sims 4 modding and my Python knowledge as well is not amazing(C# lover) so there may be better ways to do this. If you do notice something wrong feel free to let me know.
