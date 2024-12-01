@@ -220,6 +220,16 @@ def SetActivity():
     large_icon = GetWorldKey() if show_world_icon else 'menu'
     small_icon, small_text = (gamemode_image, gamemode_text) if show_mode_icon else (None, None)
 
+    # If user is editing a lot, check if the household is active
+    if services.active_household() is None:
+        details = GetWorldName()
+        state = "Editing A Lot"
+        large_icon = GetWorldKey()
+        large_icon_text = GetLotName()
+        small_icon = gamemode_image
+        small_text = gamemode_text
+
+
     client.set_activity(
         details=details,
         state=state,
