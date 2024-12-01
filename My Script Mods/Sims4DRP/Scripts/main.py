@@ -19,10 +19,10 @@ from logger import logger
 
 # Sims 4 Discord Rich Presence
 # Created by: Otakubuns
-# Version: 1.0.5
-# Last Updated: 2024-11-28
+# Version: 1.0.7
+# Last Updated: 2024-11-30
 # Description: Adds Discord Rich Presence to The Sims 4 with injection methods for CAS, Build/Buy, and Live Mode.
-#              Also adds world icons, household funds & name.
+#              Also adds world icons, household funds & name. Configurable through the discordRPC.cfg file
 
 # DRP Variables
 client_id = '971558123531804742'
@@ -178,7 +178,6 @@ def GetHouseholdFunds():
         return None
     return f"§{services.active_household().funds.money:,}"
 
-
 def GetWorldName():
     if services.current_zone_id() is None:
         return None
@@ -253,10 +252,3 @@ def ResolveConfigValueFunctions(config_value):
                 config_value = config_value.replace(placeholder, "")
                 logger.error(f"Error resolving placeholder {placeholder}: {e}")
     return config_value
-
-def IsHouseholdFundsUsed():
-    """Checks if the config file uses the household funds placeholder."""
-    for value in raw_config.values():
-        if "{Household_Funds}" in value:
-            return True
-    return False

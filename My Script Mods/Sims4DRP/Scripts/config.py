@@ -38,7 +38,6 @@ def LoadDefaultConfig():
         'showModeIcon': 'True'
     }
 
-
 def IsConfigMissing():
     """Checks if the config file is missing."""
     path = os.path.join(os.path.dirname(__file__), os.path.pardir, 'discordRPC.cfg')
@@ -47,6 +46,6 @@ def IsConfigMissing():
 def IsHouseholdFundsUsed(config):
     """Checks if the config file uses the household funds placeholder."""
     for value in config.values():
-         if "{Household_Funds}" in value:
-                return True
+        if "{Household_Funds}" in value:
+            return True
     return False

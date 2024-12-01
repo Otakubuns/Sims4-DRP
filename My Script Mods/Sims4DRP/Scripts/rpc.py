@@ -42,7 +42,7 @@ class DiscordIpcClient(metaclass=ABCMeta):
         try:
             self.client_id = client_id
             self.connection_established = False
-            self.connection_attempts = 0     # Counter for connection attempts(if the connection is broken/lost even if Discord is open)
+            self.connection_attempts = 0  # Counter for connection attempts(if the connection is broken/lost even if Discord is open)
             self._connect_and_handshake()
         except Exception as e:
             self.connection_established = False
@@ -145,14 +145,20 @@ class DiscordIpcClient(metaclass=ABCMeta):
         data = json.loads(payload.decode('utf-8'))
         return op, data
 
-    reconnect_notification = False # So it doesnt log the reconnect message multiple times
-    discord_open_notification = False # So it doesnt log the discord not open message multiple times
+    reconnect_notification = False  # So it doesnt log the reconnect message multiple times
+    discord_open_notification = False  # So it doesnt log the discord not open message multiple times
+
     # Edited from pypresence for convenience(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/presence.py)
     def set_activity(self, state=None, details=None, start=None, large_image=None, large_text=None,
                      small_image=None, small_text=None):
         """Set activity for the user, reconnecting only if Discord is open."""
+        if not self._is_discord_open():
+            if not self.discord_open_notification:
+                logger.error("Discord is not running. Please open Discord and try again.")
+                self.discord_open_notification = True
+            return
 
-        delay(0.5)  # Added to add a delay as too fast breaks the presence update
+        # delay(0.5)  # Added to add a delay as too fast breaks the presence update
         # Even if connection boolean is set to true, it may not be connected if an error occurs so make sure to check connection_attempts
         if self.connection_attempts >= 3:
             if not self.reconnect_notification:
@@ -163,11 +169,6 @@ class DiscordIpcClient(metaclass=ABCMeta):
 
         try:
             if not self.connection_established:
-                if not self._is_discord_open():
-                    if not self.discord_open_notification:
-                        logger.error("Discord is not running. Please open Discord and try again.")
-                        self.discord_open_notification = True
-                    return
                 self._connect_and_handshake()  # Attempt to reconnect if connection isn't established
 
             data = {
@@ -217,6 +218,7 @@ class DiscordIpcClient(metaclass=ABCMeta):
         except Exception as e:
             print(f"Error checking if Discord is open: {e}")
             return False
+
 
 # Taken from pypresence(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/utils.py)
 def remove_none(d: dict):  # Made by https://github.com/LewdNeko ;^)
