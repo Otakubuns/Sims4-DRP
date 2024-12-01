@@ -1,3 +1,4 @@
+# coding=utf-8
 # References:
 # * https://github.com/devsnek/discord-rpc/tree/master/src/transports/IPC.js
 # * https://github.com/devsnek/discord-rpc/tree/master/example/main.js
@@ -13,6 +14,7 @@ import sys
 import time
 import uuid
 from abc import ABCMeta, abstractmethod
+
 from logger import logger
 
 OP_HANDSHAKE = 0
@@ -40,6 +42,7 @@ class DiscordIpcClient(metaclass=ABCMeta):
         try:
             self.client_id = client_id
             self.connection_established = False
+            self.connection_attempts = 0     # Counter for connection attempts(if the connection is broken/lost even if Discord is open)
             self._connect_and_handshake()
         except Exception as e:
             self.connection_established = False
@@ -68,17 +71,18 @@ class DiscordIpcClient(metaclass=ABCMeta):
         pass
 
     def _do_handshake(self):
-        if self.connection_established and self.check_connection():
-            return
-
-        ret_op, ret_data = self.send_recv({'v': 1, 'client_id': self.client_id}, op=OP_HANDSHAKE)
-        # {'cmd': 'DISPATCH', 'data': {'v': 1, 'config': {...}}, 'evt': 'READY', 'nonce': None}
-        if ret_op == OP_FRAME and ret_data['cmd'] == 'DISPATCH' and ret_data['evt'] == 'READY':
-            return
-        else:
-            if ret_op == OP_CLOSE:
-                self.close()
-            return RuntimeError(ret_data)
+        try:
+            ret_op, ret_data = self.send_recv({'v': 1, 'client_id': self.client_id}, op=OP_HANDSHAKE)
+            # {'cmd': 'DISPATCH', 'data': {'v': 1, 'config': {...}}, 'evt': 'READY', 'nonce': None}
+            if ret_op == OP_FRAME and ret_data['cmd'] == 'DISPATCH' and ret_data['evt'] == 'READY':
+                return
+            else:
+                if ret_op == OP_CLOSE:
+                    self.close()
+                return RuntimeError(ret_data)
+        except Exception as e:
+            self.connection_established = False
+            raise DiscordIpcError(f"Handshake failed: {str(e)}")
 
     @abstractmethod
     def _write(self, date: bytes):
@@ -141,17 +145,30 @@ class DiscordIpcClient(metaclass=ABCMeta):
         data = json.loads(payload.decode('utf-8'))
         return op, data
 
+    reconnect_notification = False # So it doesnt log the reconnect message multiple times
+    discord_open_notification = False # So it doesnt log the discord not open message multiple times
     # Edited from pypresence for convenience(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/presence.py)
     def set_activity(self, state=None, details=None, start=None, large_image=None, large_text=None,
                      small_image=None, small_text=None):
         """Set activity for the user, reconnecting only if Discord is open."""
-        delay(0.5)  # Prevent spamming Discord API
+
+        delay(0.5)  # Added to add a delay as too fast breaks the presence update
+        # Even if connection boolean is set to true, it may not be connected if an error occurs so make sure to check connection_attempts
+        if self.connection_attempts >= 3:
+            if not self.reconnect_notification:
+                logger.error(
+                    "Failed to connect to Discord after multiple attempts. Please use 'discord' command in cheat console to reconnect.")
+                self.reconnect_notification = True
+            return
+
         try:
             if not self.connection_established:
                 if not self._is_discord_open():
+                    if not self.discord_open_notification:
+                        logger.error("Discord is not running. Please open Discord and try again.")
+                        self.discord_open_notification = True
                     return
-                logger.info("Connection not established. Attempting to reconnect...")
-                self._connect_and_handshake()
+                self._connect_and_handshake()  # Attempt to reconnect if connection isn't established
 
             data = {
                 "cmd": 'SET_ACTIVITY',
@@ -173,43 +190,32 @@ class DiscordIpcClient(metaclass=ABCMeta):
                 },
                 "nonce": str(uuid.uuid4())
             }
-            data = remove_none(data)
-            self.send(data)  # Attempt to send the activity data
+            self.send(remove_none(data))  # Attempt to send the activity data
+            self.connection_attempts = 0  # Reset connection attempts after successful activity
         except OSError as e:
-            if e.errno == 22:
-                pass
-            else:
-                logger.error(f"Unexpected OSError during activity update: {str(e)}")
+            logger.error(
+                "Discord is not initialized correctly." if e.errno == 22 else f"Unexpected OSError during activity update: {str(e)}")
             self.connection_established = False
+            self.connection_attempts += 1
         except Exception as e:
             logger.error(f"Unexpected error while setting activity: {str(e)}")
             self.connection_established = False
+            self.connection_attempts += 1
 
     def check_connection(self):
         pass
 
     def _is_discord_open(self):
-        """Check if Discord is running by attempting a lightweight connection."""
+        """Check if Discord is running without fully initializing the connection."""
         try:
-            # Attempt to connect to the IPC without fully initializing
-            self._connect()
-            # If `_connect` is successful, check for `_f` (Windows) or `_sock` (Unix)
-            if hasattr(self, '_f') and self._f:
-                self._close()  # Close the connection immediately after the check
-                return True
-            elif hasattr(self, '_sock') and self._sock:
-                self._close()
-                return True
-            else:
-                return False
-        except OSError as e:
-            if e.errno != 22:  # Invalid argument
-                pass
-            else:
-                logger.error(f"OSError while checking Discord connection: {str(e)}")
+            pipe_pattern = self._get_pipe_pattern() if hasattr(self, '_get_pipe_pattern') else self._pipe_pattern
+            for i in range(10):
+                path = pipe_pattern.format(i)
+                if os.path.exists(path):  # If the pipe exists, Discord is open
+                    return True
             return False
         except Exception as e:
-            logger.error(f"Unexpected error while checking Discord connection: {str(e)}")
+            print(f"Error checking if Discord is open: {e}")
             return False
 
 # Taken from pypresence(https://github.com/qwertyquerty/pypresence/blob/master/pypresence/utils.py)

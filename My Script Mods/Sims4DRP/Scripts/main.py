@@ -5,22 +5,22 @@ from functools import wraps
 from time import mktime
 
 import build_buy
-import rpc
-from clock import GameClock
 import services
 import sims4.reload
 from game_services import GameServiceManager, service_manager
 from sims.funds import FamilyFunds
-from sims.household_utilities.utilities_manager import ZoneUtilitiesManager
 from sims4 import commands
 from sims4.service_manager import Service
 from world import lot
+
+import config
+import rpc
 from logger import logger
 
 # Sims 4 Discord Rich Presence
 # Created by: Otakubuns
 # Version: 1.0.5
-# Last Updated: 2024-02-06
+# Last Updated: 2024-11-28
 # Description: Adds Discord Rich Presence to The Sims 4 with injection methods for CAS, Build/Buy, and Live Mode.
 #              Also adds world icons, household funds & name.
 
@@ -28,6 +28,7 @@ from logger import logger
 client_id = '971558123531804742'
 client = rpc.DiscordIpcClient.for_platform(client_id)
 start_time = mktime(time.localtime())
+raw_config = config.LoadConfig()
 
 # Global service variable
 with sims4.reload.protected(globals()):
@@ -59,28 +60,6 @@ def inject_to(target_object, target_function_name):
 gamemode_image = None
 gamemode_text = None
 
-def setup_logger():
-    # Create a logger object
-    logger = logging.getLogger('my_logger')
-
-    # Set the level of this logger. DEBUG means that all messages of level DEBUG and above will be tracked
-    logger.setLevel(logging.DEBUG)
-
-    # Create a file handler for the logger. 'w' mode means the log file will be overwritten each time the application starts
-    file_handler = logging.FileHandler('C:\\Users\\alexu\\Documents\\Electronic Arts\\The Sims 4\\Mods\\discordRPC.log', mode='w')
-
-    # Create a formatter. This will format the log messages in a specific format.
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-    # Set the formatter for the file handler
-    file_handler.setFormatter(formatter)
-
-    # Add the file handler to the logger
-    logger.addHandler(file_handler)
-
-    return logger
-
-
 class MyCustomService(Service):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -91,14 +70,7 @@ class MyCustomService(Service):
         global gamemode_image
         gamemode_text = "Live Mode"
         gamemode_image = "live"
-        client.set_activity(
-            details=GetWorldName(),
-            state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
-            large_image=GetWorldKey(),
-            large_text=GetLotName(),
-            small_image=gamemode_image,
-            small_text=gamemode_text,
-            start=start_time)
+        SetActivity()
 
     def start(self, *args, **kwargs):
         build_buy.register_build_buy_enter_callback(self.on_build_buy_enter)
@@ -125,14 +97,7 @@ class MyCustomService(Service):
                                 small_text=gamemode_text,
                                 start=start_time)
         else:
-            client.set_activity(
-                details=GetWorldName(),
-                state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
-                large_image=GetWorldKey(),
-                large_text=GetLotName(),
-                small_image=gamemode_image,
-                small_text=gamemode_text,
-                start=start_time)
+            SetActivity()
 
     def on_build_buy_exit(self, *args, **kwargs):
         global gamemode_text
@@ -145,14 +110,22 @@ class MyCustomService(Service):
             client.set_activity(details="In Manage Worlds", large_text="Manage Worlds", large_image="menu",
                                 start=start_time)
         else:
-            client.set_activity(
-                details=GetWorldName(),
-                state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
-                large_image=GetWorldKey(),
-                large_text=GetLotName(),
-                small_image=gamemode_image,
-                small_text=gamemode_text,
-                start=start_time)
+            SetActivity()
+
+
+# Reconnect if need be
+@sims4.commands.Command('discord', command_type=sims4.commands.CommandType.Live)
+def discord_reconnect(_connection=None):
+    output = sims4.commands.CheatOutput(_connection)
+    try:
+        # This will close the client and create a new one, I don't recommend using this command often
+        global client
+        client.close()
+        client = rpc.DiscordIpcClient.for_platform(client_id)
+        output("Reconnected to Discord RPC.")
+        SetActivity()
+    except Exception as e:
+        output(f"Error reconnecting to Discord. Please check logs for more information.")
 
 
 @inject_to(GameServiceManager, 'start_services')
@@ -173,16 +146,13 @@ def inject_main_menu_load(original):
     client.set_activity(details="Browsing the menu", large_text="Main Menu", large_image="menu", start=start_time)
     original()
 
-@inject_to(FamilyFunds, 'send_money_update')
-def update_household_funds(original, self, *args, **kwargs):
-    client.set_activity(details=GetWorldName(),
-                        state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
-                        large_image=GetWorldKey(),
-                        large_text=GetLotName(),
-                        small_image=gamemode_image,
-                        small_text=gamemode_text,
-                        start=start_time)
-    original(self, *args, **kwargs)
+
+# If HouseHold funds is used in the presence, update it when funds are updated, but don't inject if its not used
+if config.IsHouseholdFundsUsed(raw_config):
+    @inject_to(FamilyFunds, 'send_money_update')
+    def update_household_funds(original, self, *args, **kwargs):
+        SetActivity()
+        original(self, *args, **kwargs)
 
 
 # World for Live CAS but not in menu(create a household)
@@ -194,13 +164,7 @@ def inject_cas_load(original, s, context):
         global gamemode_image
         gamemode_text = "CAS"
         gamemode_image = "cas"
-        client.set_activity(details=GetWorldName(),
-                            state=f"{GetHouseholdName()} | §{GetHouseholdFunds()}",
-                            large_image=GetWorldKey(),
-                            large_text=GetLotName(),
-                            small_image=gamemode_image,
-                            small_text=gamemode_text,
-                            start=start_time)
+        SetActivity()
     original(s, context)
 
 # Functionality Functions
@@ -212,7 +176,7 @@ def GetHouseholdName():
 def GetHouseholdFunds():
     if services.active_household() is None:
         return None
-    return f"{services.active_household().funds.money:,}"
+    return f"§{services.active_household().funds.money:,}"
 
 
 def GetWorldName():
@@ -223,7 +187,8 @@ def GetWorldName():
 def GetWorldKey():
     if services.current_zone_id() is None:
         return None
-    return str(services.get_persistence_service().get_neighborhood_proto_buf_from_zone_id(services.current_zone_id()).region_id)
+    return str(services.get_persistence_service().get_neighborhood_proto_buf_from_zone_id(
+        services.current_zone_id()).region_id)
 
 def GetLotName():
     if services.active_lot() is None:
@@ -231,8 +196,67 @@ def GetLotName():
     return lot.Lot.get_lot_name(self=services.active_lot())
 
 
-# TODO: Allow config file for custom text and icon texts
-def LoadConfig():
-    pass
+def SetActivity():
+    """Sets the activity for the Discord Rich Presence."""
+    global raw_config
+
+    def returnConfig(key):
+        value = ResolveConfigValueFunctions(raw_config[key])
+        return value if value != "" else None
+
+    try:
+        details = returnConfig('details')
+        state = returnConfig('state')
+        large_icon_text = returnConfig('largeIconText')
+        show_world_icon = raw_config['showWorldIcon'].lower() == 'true'
+        show_mode_icon = raw_config['showModeIcon'].lower() == 'true'
+    except Exception:
+        # if exception happens run the default values
+        details = ResolveConfigValueFunctions(config.LoadDefaultConfig()['details'])
+        state = ResolveConfigValueFunctions(config.LoadDefaultConfig()['state'])
+        large_icon_text = ResolveConfigValueFunctions(config.LoadDefaultConfig()['largeIconText'])
+        show_world_icon = config.LoadDefaultConfig()['showWorldIcon'].lower() == 'true'
+        show_mode_icon = config.LoadDefaultConfig()['showModeIcon'].lower() == 'true'
+
+    large_icon = GetWorldKey() if show_world_icon else 'menu'
+    small_icon, small_text = (gamemode_image, gamemode_text) if show_mode_icon else (None, None)
+
+    client.set_activity(
+        details=details,
+        state=state,
+        large_image=large_icon,
+        large_text=large_icon_text,
+        start=start_time,
+        small_image=small_icon,
+        small_text=small_text
+    )
 
 
+def ResolveConfigValueFunctions(config_value):
+    """Resolves the functions in the config values."""
+    config_dict = {
+        "{Household_Name}": GetHouseholdName,
+        "{Household_Funds}": GetHouseholdFunds,
+        "{Lot_Name}": GetLotName,
+        "{World_Name}": GetWorldName
+    }
+
+    for placeholder, function in config_dict.items():
+        if placeholder in config_value:
+            try:
+                # Call the function and replace the placeholder with its result
+                result = function()
+                if result is None:
+                    result = "[Unavailable]"
+                config_value = config_value.replace(placeholder, result)
+            except Exception as e:
+                config_value = config_value.replace(placeholder, "")
+                logger.error(f"Error resolving placeholder {placeholder}: {e}")
+    return config_value
+
+def IsHouseholdFundsUsed():
+    """Checks if the config file uses the household funds placeholder."""
+    for value in raw_config.values():
+        if "{Household_Funds}" in value:
+            return True
+    return False
